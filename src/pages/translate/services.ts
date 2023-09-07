@@ -1,29 +1,8 @@
 import { BlobWriter, ZipWriter, TextReader } from "@zip.js/zip.js";
 import { FileType } from "./types";
 import yaml from "js-yaml";
+import { intlLanguages } from "./config";
 
-export async function translate(content: string, targetLang: string, fileType: FileType, extraPrompt?: string) {
-    const res = await fetch("/api/fastTranslate", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            content,
-            targetLang: targetLang,
-            extraPrompt
-        }),
-    })
-    const data = await res.json();
-    if (data.success) {
-        if (fileType === "yaml") {
-            return yaml.dump(JSON.parse(data.data))
-        }
-        return data.data
-    } else {
-        throw new Error(data.message)
-    }
-}
 
 export async function exportLocalFiles(content: string, langList: string[], fileType: FileType) {
     const res = await fetch("/api/exportLocalFiles", {
@@ -52,9 +31,12 @@ export async function exportLocalFiles(content: string, langList: string[], file
 export async function makeLocalesInZip (data: { lang: string, content: string }[], fileType: FileType): Promise<File> {
     const zipFileWriter = new BlobWriter();
     const zipWriter = new ZipWriter(zipFileWriter);
+    const langMap = new Map<string, string>(intlLanguages.map(({value, code}) => (
+        [value, code]
+    )))
     for (let item of data) {
         const content = new TextReader(item.content);
-        await zipWriter.add(`${item.lang}.${fileType}`, content);
+        await zipWriter.add(`${langMap.get(item.lang) ?? item.lang}.${fileType}`, content);
     }
     const blob = await zipWriter.close();
     return new File([blob], `locales.${fileType}`);
