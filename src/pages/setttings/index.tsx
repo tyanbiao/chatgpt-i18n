@@ -27,6 +27,10 @@ const Settings: React.FC = (props) => {
                             value: "openai",
                             label: "openai",
                         },
+                        {
+                            value: "custom",
+                            label: "custom",
+                        },
                     ]}
                     selectedKey={config.serviceProvider}
                     onSelect={(v) => {
@@ -40,7 +44,7 @@ const Settings: React.FC = (props) => {
                         commonStore.updateConfig("apiKey", v);
                     }}
                 />
-                {config.serviceProvider === "azure" && (
+                {(config.serviceProvider === "azure" || config.serviceProvider === 'custom') && (
                     <TextField
                         value={`${config.baseURL}`}
                         label="Base URL"

@@ -70,6 +70,9 @@ export async function createChatCompletion(props: ICreateChatCompletionProps, co
     } else if (config.serviceProvider === 'azure') {
         headers['api-key'] = `${config.apiKey}`
         url = `${config.baseURL}/openai/deployments/${config.deployName}/chat/completions?api-version=2023-03-15-preview`
+    } else if (config.serviceProvider === 'custom') {
+        url = `${config.baseURL}/chat/completions`
+        headers['Authorization'] = `Bearer ${config.apiKey}`
     }
     const response = await fetch(url, {
         method: 'POST',

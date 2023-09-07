@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Configuration, OpenAIApi, ChatCompletionRequestMessage, CreateChatCompletionResponse } from "openai";
-import { buildJsonByPairs, compressValuesInJson, groupPairs } from "./utils/utils.js";
+import { buildJsonByPairs, compressValuesInJson, groupPairs } from "../libs/utils/utils.js";
 import { AxiosResponse } from "axios";
 // import { buildJsonByPairs, compressValuesInJson, groupPairs } from '../lib/utils/index'
 

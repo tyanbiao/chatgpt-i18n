@@ -1,4 +1,4 @@
-import { buildJsonByPairs } from "../../api/utils/utils";
+import { buildJsonByPairs } from "../../libs/utils/utils";
 import { IMessage, IUserSetting } from "../interface";
 import { compressValuesInJson, createChatCompletion, groupPairs, matchJSON } from "../utils";
 
