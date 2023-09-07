@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import OpenAI from "openai";
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const OpenAI = require("openai");
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     const params = request.body;
