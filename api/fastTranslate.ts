@@ -1,8 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { Configuration, OpenAIApi, ChatCompletionRequestMessage, CreateChatCompletionResponse } from "openai";
+import OpenAI from "openai";
 import { buildJsonByPairs, compressValuesInJson, groupPairs } from "../libs/utils/utils.js";
-import { AxiosResponse } from "axios";
-// import { buildJsonByPairs, compressValuesInJson, groupPairs } from '../lib/utils/index'
+import type { ChatCompletionMessageParam } from "openai/resources/chat/index.js";
 
 function matchJSON(str: string) {
     let start = 0;
@@ -35,16 +34,16 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const params = request.body as IReqBody;
     const { content, targetLang, extraPrompt } = params;
     try {
-        const configuration = new Configuration({
+        const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
+            baseURL: process.env.OPENAI_API_BASE_URL,
         });
-        const openai = new OpenAIApi(configuration);
         const locale = JSON.parse(content);
         const pairs: [string, any][] = [];
         compressValuesInJson(locale, "", pairs);
 
         const { requireTranslation, noTranslation } = groupPairs(pairs);
-        const messages: ChatCompletionRequestMessage[] = [
+        const messages: ChatCompletionMessageParam[] = [
             {
                 role: "system",
                 content: `You are a helpful assistant that translates a i18n locale array content to ${targetLang}. 
@@ -77,7 +76,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
                 tasks.push(
                     openai
-                        .createChatCompletion({
+                        .chat.completions.create({
                             model: "gpt-3.5-turbo",
                             messages: [
                                 ...messages,
@@ -88,7 +87,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
                             ],
                         })
                         .then((completion) => {
-                            return matchJSON(`${completion.data.choices[0].message?.content}`);
+                            return matchJSON(`${completion.choices[0].message?.content}`);
                         })
                         .then((raw) => JSON.parse(raw) as string[])
                         .then((r) => {
@@ -110,7 +109,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
         const freezeChunk = [...chunk];
         tasks.push(
             openai
-                .createChatCompletion({
+                .chat.completions.create({
                     model: "gpt-3.5-turbo",
                     messages: [
                         ...messages,
@@ -121,7 +120,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
                     ],
                 })
                 .then((completion) => {
-                    return matchJSON(`${completion.data.choices[0].message?.content}`);
+                    return matchJSON(`${completion.choices[0].message?.content}`);
                 })
                 .then((raw) => JSON.parse(raw) as string[])
                 .then((r) => {

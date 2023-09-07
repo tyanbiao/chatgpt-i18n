@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { Configuration, OpenAIApi } from "openai";
+import OpenAI from "openai";
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
     const params = request.body;
@@ -12,13 +12,13 @@ export default async function handler(request: VercelRequest, response: VercelRe
         return;
     }
     try {
-        const configuration = new Configuration({
+        const openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY,
+            baseURL: process.env.OPENAI_API_BASE_URL,
         });
-        const openai = new OpenAIApi(configuration);
         const result: { lang: string; content: string }[] = [];
         for (let lang of langList) {
-            const completion = await openai.createChatCompletion({
+            const completion = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
                 messages: [
                     {
@@ -34,7 +34,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
             }, { timeout:5000 });
             result.push({
                 lang,
-                content: `${completion.data.choices[0].message?.content}`,
+                content: `${completion.choices[0].message?.content}`,
             });
         }
 
@@ -43,6 +43,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
             data: result,
         });
     } catch (error) {
+        console.error(error)
         response.status(500).json({
             success: false,
             message: '[/exportLocalFiles] Translating services failed',
